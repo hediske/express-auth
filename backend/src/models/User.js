@@ -28,6 +28,13 @@ const userSchema = new mongoose.Schema({
         ref: 'Role',
         required: true,
     },
+    isActive: { 
+        type: Boolean,
+        default: false 
+    },
+    activationCode: { 
+        type: String
+    },
 })
 
 

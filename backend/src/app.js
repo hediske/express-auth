@@ -3,7 +3,7 @@ import session from './middlewares/SessionMiddleware.js';
 import passport from 'passport';
 import seedRoles from './utils/seedRoles.js';
 import connectToDatabase from './config/db.js';
-import User from './models/user.js';
+import User from './models/User.js';
   // Middleware
   const app = express();
   connectToDatabase();
