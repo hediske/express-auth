@@ -1,6 +1,3 @@
-import 'bcrypt' from 'bcryptjs'
-
-
 const hashPassword = async(next) => {
     const salt = await bcrypt.genSalt(10)
     if (this.isModified('password') || this.isNew) {

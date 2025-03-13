@@ -1,15 +1,28 @@
 import express from 'express';
-import {session} from './middlewares/SessionMiddleware'
-// const routes = require('./routes');
+import session from './middlewares/SessionMiddleware.js';
+import passport from 'passport';
+import LocalStrategy from 'passport-local';
+import connectToDatabase from './config/db.js';
+import User from './models/user.js';
+  // Middleware
+  const app = express();
+  connectToDatabase();
+  app.use(session);
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-const app = express();
-app.use(session)
+  // use static authenticate method of model in LocalStrategy
+    passport.use(User.createStrategy());
+
+    // use static serialize and deserialize of model for passport session support
+    passport.serializeUser(User.serializeUser());
+    passport.deserializeUser(User.deserializeUser());
 
 
+    // Mounting the Routes
+    // const routes = require('./routes');
+    // app.use('/api', routes);
 
-// Mounting the Routes
-// app.use('/api', routes);
+    // app.use()
 
-// app.use()
-
-module.exports = app;
+export default app;

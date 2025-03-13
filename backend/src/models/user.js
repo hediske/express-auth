@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-export {hashPassword, comparePassword} from '../utils/authUtils.js'
+import passportLocalMongoose from 'passport-local-mongoose'
+import {hashPassword, comparePassword} from '../utils/authUtils.js'
 
 const userSchema = new mongoose.Schema({
     id: {
@@ -30,6 +31,7 @@ const userSchema = new mongoose.Schema({
 })
 
 
+userSchema.plugin(passportLocalMongoose);
 
 userSchema.pre('save',hashPassword)
 userSchema.methods.comparePassword = comparePassword

@@ -1,12 +1,14 @@
-import {session} from express-session
-import {config} from dotenv
+import session from 'express-session'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 
 
-const session = session({
-    secret: config.get('SESSION_SECRET'),
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
 })
 
-export default session
+export default sessionMiddleware

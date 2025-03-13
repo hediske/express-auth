@@ -36,3 +36,5 @@ class authService {
         // Check if the activation code is correct
     }
 }   
+
+export default authService; 
