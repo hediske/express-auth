@@ -1,4 +1,4 @@
-import authService from "../../services/user/authService";
+import authService from "../../services/user/authService.js";
 import { validationResult } from 'express-validator';
 
 class authController {

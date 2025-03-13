@@ -4,6 +4,10 @@ import passport from 'passport';
 import seedRoles from './utils/seedRoles.js';
 import connectToDatabase from './config/db.js';
 import User from './models/User.js';
+
+// Routes
+import userRoutes from './routes/userRoutes.js';
+
   // Middleware
   const app = express();
   connectToDatabase();
@@ -23,8 +27,7 @@ import User from './models/User.js';
   await seedRoles();
 
   // Mounting the Routes
-  // const routes = require('./routes');
-  // app.use('/api', routes);
+  app.use('/api/user', userRoutes);
 
   // app.use()
 
