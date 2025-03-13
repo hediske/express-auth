@@ -10,7 +10,8 @@ const connectToDatabase = async () =>{
         const port = process.env.MONGO_PORT
         const user = process.env.MONGO_USER
         const password = process.env.MONGO_PASSWORD
-        const connectionString = `mongodb://${user}:${password}@${url}:${port}`
+        const db = process.env.MONGO_DB
+        const connectionString = `mongodb://${user}:${password}@${url}:${port}/${db}`
         console.log(connectionString)
         await mongoose.connect(connectionString)
         console.log('MongoDB connected');

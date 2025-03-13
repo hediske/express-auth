@@ -1,15 +1,10 @@
-import { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 
-const roleSchema = new Mongoose.Schema({
-    id: {
-        type: String,
-        required: true,
-        unique: true,
-    },
+const roleSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
         trim: true,
     },
 })
-export default Mongoose.model('Role', roleSchema)
+export default mongoose.model('Role', roleSchema)
