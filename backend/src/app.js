@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 
   // Middleware
   const app = express();
+  app.use(express.json());
   connectToDatabase();
   app.use(session);
   app.use(passport.initialize());

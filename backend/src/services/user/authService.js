@@ -1,9 +1,13 @@
 import User from '../../models/User.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-class authService {
+dotenv.config();
+
+class AuthService {
 
     async login(email , password) {
-        const user = await this.User.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
             throw new Error('User not found');
         }
@@ -11,11 +15,26 @@ class authService {
         if (!isMatch) {
             throw new Error('Invalid password');
         }
+
+        if (!user.isActive) {
+            throw new Error('Account not activated');
+        }
+
+        // Payload to encode in the token
+        const payload = {
+            id: user._id,
+            email: user.email,
+            role: user.role.name // Assuming role has a `name` field
+        };
+
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        return token
         
     }
 
     async register(email, password) {
-        const user = await this.userModel.create({ email, password });
+        const user = await User.create({ email, password });
         return { message : 'User created successfully', "id" : user._id , "email" : user.email };
     }
 
@@ -31,4 +50,4 @@ class authService {
     }
 }   
 
-export default authService;
+export default AuthService;
