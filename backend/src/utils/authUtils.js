@@ -1,13 +1,10 @@
-const hashPassword = async(next) => {
-    const salt = await bcrypt.genSalt(10)
-    if (this.isModified('password') || this.isNew) {
-        this.password = await bcrypt.hash(this.password, salt)
-    }
-    next()
-}
+import bcrypt from 'bcryptjs';
 
-const comparePassword = async(candidatePassword) => {
-    return bcrypt.compare(candidatePassword, this.password)
-}
+export const hashPassword = async (password) => {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+};
 
-export {hashPassword, comparePassword}
+export const comparePassword = async function (candidatePassword, hashedPassword) {
+    return bcrypt.compare(candidatePassword, hashedPassword);
+};

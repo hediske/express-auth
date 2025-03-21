@@ -3,6 +3,8 @@ import { validationResult } from 'express-validator';
 class AuthController {
     constructor(authService) {
         this.authService = authService;
+
+        // Bind methods to the instance
         this.register = this.register.bind(this);
         this.login = this.login.bind(this);
         this.activate = this.activate.bind(this);
@@ -13,9 +15,9 @@ class AuthController {
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-        const { email, password } = req.body;
+        const { email, password, role='student',firstname,lastname,dateOfBirth} = req.body;
         try {
-            const user = await this.authService.register(email, password);
+            const user = await this.authService.register(email, password, role,firstname,lastname,dateOfBirth);
             res.status(201).json({ message: 'User registered successfully', user });
         } catch (err) {
             res.status(400).json({ message: err.message });
@@ -23,12 +25,8 @@ class AuthController {
     }
 
     async login(req, res) {
-        console.log("Tesing the login function");
-        console.log('Request Body:', req.body); // Log the request body
-        console.log(this.authService)
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            console.log("Found Errors")
             return res.status(400).json({ errors: errors.array() });
         }
         const { email, password } = req.body;
