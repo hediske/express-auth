@@ -11,5 +11,13 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  maildev:
+    image: maildev/maildev:latest
+    container_name: maildev
+    restart: always
+    ports:
+      - "1080:1080" # Web interface
+      - "1025:1025" # SMTP server
+
 volumes:
   mongodb_data:

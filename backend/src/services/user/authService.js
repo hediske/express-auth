@@ -4,23 +4,45 @@ import dotenv from 'dotenv';
 import Role from '../../models/Role.js'; // Import the Role model
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import hbs from 'nodemailer-express-handlebars';
+import path from 'path';
 
 dotenv.config();
 
 class AuthService {
+    constructor() {
+        this.transporter = nodemailer.createTransport({
+            service: 'Gmail', // Use your email service
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        // Configure Handlebars templates
+        this.transporter.use(
+            'compile',
+            hbs({
+                viewEngine: {
+                    extname: '.hbs',
+                    layoutsDir: path.resolve('static/templates'),
+                    defaultLayout: false,
+                },
+                viewPath: path.resolve('static/templates'),
+                extName: '.hbs',
+            })
+        );
+    }
 
     async login(email , password) {
         try{
             if (!email || !password) {
                 throw new Error('Email and password are required');
             }
-            const user = await User.findOne({ email });
-            if (!user) {
-                throw new Error('User not found');
-            }
-            const isMatch = await user.comparePassword(password, user.password);
-            if (!isMatch) {
-                throw new Error('Invalid password');
+            const { user, error } = await User.authenticate()(email, password);
+
+            if (error || !user) {
+                throw new Error('Invalid email or password');
             }
     
             if (!user.isActive) {
@@ -70,8 +92,8 @@ class AuthService {
 
     async activate(activationCode) {
         const user = await User.findOne({ activationCode });
-        if (!user) {
-            throw new Error('Invalid or expired activation code');
+        if (!user || user.activationExpires < Date.now()) {
+            throw new Error('Activation code expired');
         }
         user.isActive = true;
         user.activationCode = null; // Clear the activation code
@@ -79,25 +101,27 @@ class AuthService {
         return user;
     }
 
+
+    
+
     async sendActivationEmail(user) {
         const activationToken = crypto.randomBytes(32).toString('hex');
         user.activationCode = activationToken;
+        user.activationExpires = Date.now() + 24 * 60 * 60 * 1000; 
+
         await user.save();
 
         const activationLink = `${process.env.FRONTEND_URL}/activate/${activationToken}`;
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail', // Use your email service
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
 
-        await transporter.sendMail({
+        await this.transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: user.email,
             subject: 'Activate Your Account',
-            html: `<p>Click <a href="${activationLink}">here</a> to activate your account.</p>`,
+            template: 'activation', // Use the activation template
+            context: {
+                firstname: user.firstname,
+                activationLink,
+            },
         });
     }
 
@@ -124,19 +148,16 @@ class AuthService {
         await user.save();
 
         const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail', // Use your email service
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
 
-        await transporter.sendMail({
+        await this.transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: user.email,
             subject: 'Reset Your Password',
-            html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
+            template: 'resetPassword', // Use the reset password template
+            context: {
+                firstname: user.firstname,
+                resetLink,
+            },
         });
     }
 

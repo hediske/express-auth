@@ -40,6 +40,9 @@ const userSchema = new mongoose.Schema({
     activationCode: { 
         type: String
     },
+    activationExpires: {
+        type: Date,
+    },
     resetPasswordToken: {
         type: String,
     },
