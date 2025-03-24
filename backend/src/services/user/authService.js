@@ -6,35 +6,12 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import hbs from 'nodemailer-express-handlebars';
 import path from 'path';
-
+import EmailService from '../email/emailService.js';
 dotenv.config();
 
 class AuthService {
-    constructor() {
-        this.transporter = nodemailer.createTransport({
-            service: 'Gmail', // Use your email service
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
-
-        // Configure Handlebars templates
-        this.transporter.use(
-            'compile',
-            hbs({
-                viewEngine: {
-                    extname: '.hbs',
-                    layoutsDir: path.resolve('static/templates'),
-                    defaultLayout: false,
-                },
-                viewPath: path.resolve('static/templates'),
-                extName: '.hbs',
-            })
-        );
-    }
-
-    async login(email , password) {
+   
+    async login(email , password) { 
         try{
             if (!email || !password) {
                 throw new Error('Email and password are required');
@@ -46,7 +23,9 @@ class AuthService {
             }
     
             if (!user.isActive) {
-                throw new Error('Account not activated');
+                const error = new Error('Account not activated');
+                error.code = 'ACCOUNT_NOT_ACTIVATED';
+                throw error;
             }
     
             // Payload to encode in the token
@@ -101,10 +80,14 @@ class AuthService {
         return user;
     }
 
-
-    
-
-    async sendActivationEmail(user) {
+    async sendActivationEmail(email) { 
+        const user = await User.findOne({ email });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        if (user.isActive) {
+            throw new Error('Account already activated');
+        }
         const activationToken = crypto.randomBytes(32).toString('hex');
         user.activationCode = activationToken;
         user.activationExpires = Date.now() + 24 * 60 * 60 * 1000; 
@@ -113,8 +96,7 @@ class AuthService {
 
         const activationLink = `${process.env.FRONTEND_URL}/activate/${activationToken}`;
 
-        await this.transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        await EmailService.sendMail({
             to: user.email,
             subject: 'Activate Your Account',
             template: 'activation', // Use the activation template
@@ -123,7 +105,11 @@ class AuthService {
                 activationLink,
             },
         });
+
+        return { message: 'Activation email resent successfully' };
+
     }
+    
 
     async activateAccount(activationCode) {
         const user = await User.findOne({ activationCode });
@@ -149,8 +135,7 @@ class AuthService {
 
         const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-        await this.transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        await EmailService.sendMail({
             to: user.email,
             subject: 'Reset Your Password',
             template: 'resetPassword', // Use the reset password template

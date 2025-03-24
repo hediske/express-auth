@@ -20,6 +20,9 @@ class AuthController {
             const user = await this.authService.register(email, password, role,firstname,lastname,dateOfBirth);
             res.status(201).json({ message: 'User registered successfully', user });
         } catch (err) {
+            if (err.code === "ACCOUNT_NOT_ACTIVATED") {
+                return res.status(401).json({ message: err.message });
+            }
             res.status(400).json({ message: err.message });
         }
     }
@@ -37,6 +40,8 @@ class AuthController {
             res.status(400).json({ message: err.message });
         }
     }
+
+    
 
     async activate(req, res) {
         const { activationCode } = req.body;
