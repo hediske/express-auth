@@ -47,6 +47,7 @@ class AuthService {
         
     }
 
+
     async register(email, password, roleName,firstname,lastname,dateOfBirth) {
         try {
             const user = await User.findOne({ email });
@@ -62,7 +63,13 @@ class AuthService {
 
             // Create the user with the role's ObjectId
             const newUser = await User.create({ email, password, role: role._id , firstname,lastname,dateOfBirth});
+            
+            // Send activation email right after registration
+            await this.sendActivationEmail(email);
+            
             return { message: 'User created successfully', id: newUser._id, email: newUser.email };
+        
+        
         } catch (error) {
             console.log(error);
             throw new Error('Error creating user: ' + error.message);

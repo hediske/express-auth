@@ -25,47 +25,20 @@ router.post('/login', [
 ], authController.login);
 
 router.post('/activate', [
-    body('activationCode').trim().isLength({ min: 6 }).withMessage('Invalid activation code').isNumeric().withMessage('Invalid activation code'),
+    body('activationCode').trim().isLength({min:32,max:32}).withMessage('Invalid activation code'),
 ], authController.activate);
 
-router.post('/send-activation-email', async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await authService.sendActivationEmail(email);
-        res.status(200).json({ message: 'Activation email sent successfully' });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+router.post('/send-activation-email', [
+    body('email').trim().isEmail().withMessage('Invalid email'),
+], authController.sendActivation);
 
-router.post('/activate', async (req, res) => {
-    const { activationCode } = req.body;
-    try {
-        const user = await authService.activateAccount(activationCode);
-        res.status(200).json({ message: 'Account activated successfully', user });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+router.post('/forgot-password', [
+    body('email').trim().isEmail().withMessage('Invalid email'),
+], authController.forgotPassword);
 
-router.post('/send-reset-password-email', async (req, res) => {
-    const { email } = req.body;
-    try {
-        await authService.sendResetPasswordEmail(email);
-        res.status(200).json({ message: 'Reset password email sent successfully' });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.post('/reset-password', async (req, res) => {
-    const { resetToken, newPassword } = req.body;
-    try {
-        await authService.resetPassword(resetToken, newPassword);
-        res.status(200).json({ message: 'Password reset successfully' });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+router.post('/reset-password', [
+    body('token').trim().isLength({min:32,max:32}).withMessage('Invalid reset code'),
+    body('newPassword').trim().isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+], authController.resetPassword);
 
 export default router;
