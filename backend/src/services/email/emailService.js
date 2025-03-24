@@ -13,10 +13,10 @@ class EmailService {
         this.transporter.use('compile', hbs({
             viewEngine: {
                 extname: '.hbs',
-                layoutsDir: path.resolve('static/templates'),
+                layoutsDir: path.resolve('src/static/templates'),
                 defaultLayout: false,
             },
-            viewPath: path.resolve('static/templates'),
+            viewPath: path.resolve('src/static/templates'),
             extName: '.hbs',
         }));
     }

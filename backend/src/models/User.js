@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 import passportLocalMongoose from 'passport-local-mongoose'
-import {hashPassword, comparePassword} from '../utils/authUtils.js'
 
 const userSchema = new mongoose.Schema({
     firstname: {
@@ -23,16 +22,11 @@ const userSchema = new mongoose.Schema({
         trim: true,
         unique: true,
     },
-    password: {
-        type: String,
-        required: true,
-    },
     role: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Role',
         required: true,
     },
-
     isActive: { 
         type: Boolean,
         default: false 
@@ -49,21 +43,9 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: {
         type: Date,
     },
-})
-
-userSchema.plugin(passportLocalMongoose);
-
-userSchema.pre('save', async function (next) {
-    if (this.isModified('password')) {
-        try {
-            this.password = await hashPassword(this.password); // Hash the password
-        } catch (error) {
-            return next(error);
-        }
-    }
-    next();
 });
 
-userSchema.methods.comparePassword = comparePassword
+// Let passport-local-mongoose handle password and salt
+userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 
-export default mongoose.model('User', userSchema)
+export default mongoose.model('User', userSchema);

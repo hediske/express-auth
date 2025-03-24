@@ -13,12 +13,13 @@ class AuthService {
    
     async login(email , password) { 
         try{
-            if (!email || !password) {
+            if (!(email && password)) {
                 throw new Error('Email and password are required');
             }
             const { user, error } = await User.authenticate()(email, password);
 
             if (error || !user) {
+                console.log(error)
                 throw new Error('Invalid email or password');
             }
     
@@ -34,10 +35,10 @@ class AuthService {
                 email: user.email,
                 role: user.role.name // Assuming role has a `name` field
             };
-    
+            const { password: userPassword, ...userWithoutPassword } = user.toObject();
             const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
     
-            return token
+            return { token, user: userWithoutPassword };
         }
         catch (error) {
             console.log(error);
@@ -48,10 +49,10 @@ class AuthService {
     }
 
 
-    async register(email, password, roleName,firstname,lastname,dateOfBirth) {
+    async register(email, password, roleName, firstname, lastname, dateOfBirth) {
         try {
-            const user = await User.findOne({ email });
-            if (user) {
+            const userExists = await User.findOne({ email });
+            if (userExists) {
                 throw new Error('User already exists');
             }
 
@@ -61,15 +62,14 @@ class AuthService {
                 throw new Error('Invalid role');
             }
 
-            // Create the user with the role's ObjectId
-            const newUser = await User.create({ email, password, role: role._id , firstname,lastname,dateOfBirth});
-            
+            // Use passport-local-mongoose's register method
+            const newUser = new User({ email, firstname, lastname, dateOfBirth, role: role._id });
+            await User.register(newUser, password);
+
             // Send activation email right after registration
             await this.sendActivationEmail(email);
-            
+
             return { message: 'User created successfully', id: newUser._id, email: newUser.email };
-        
-        
         } catch (error) {
             console.log(error);
             throw new Error('Error creating user: ' + error.message);
@@ -83,8 +83,10 @@ class AuthService {
         }
         user.isActive = true;
         user.activationCode = null; // Clear the activation code
+        user.activationExpires = null;
         await user.save();
-        return user;
+        const { password, ...userWithoutPassword } = user.toObject();
+        return userWithoutPassword;
     }
 
     async sendActivationEmail(email) { 

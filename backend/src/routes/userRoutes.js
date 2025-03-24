@@ -34,7 +34,7 @@ router.post('/send-activation-email', [
 
 router.post('/forgot-password', [
     body('email').trim().isEmail().withMessage('Invalid email'),
-], authController.forgotPassword);
+], authController.sendResetPassword);
 
 router.post('/reset-password', [
     body('token').trim().isLength({min:32,max:32}).withMessage('Invalid reset code'),
